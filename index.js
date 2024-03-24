@@ -9,14 +9,15 @@ exports.handler = async (event) => {
   // decodeURIComponent를 사용해 한글 깨짐 방지
   const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, " "));
 
-  // 리사이즈된 이미지나 특정 경로의 이미지는 처리하지 않음
-  if (key.startsWith("resized-product/")) {
+  // 리사이즈된 이미지나 특정 경로의 이미지는 처리하지 않음 (무한업로드 방지)
+  if (key.startsWith("resized-image/")) {
     return;
   }
 
   const fileName = key.split("/").pop();
   const baseFileName = fileName.split(".").slice(0, -1).join("."); // 확장자를 제외한 파일명만 추출
-  const dstKey = `resized-product/resized-${baseFileName}.webp`;
+  // resized-image 폴더에 리사이징 완료한 이미지(resized-{파일명}.webp) 형식으로 저장
+  const dstKey = `resized-image/resized-${baseFileName}.webp`; 
 
   try {
     const response = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
